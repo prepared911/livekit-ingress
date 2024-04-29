@@ -1,0 +1,111 @@
+name: docker-build
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        required: true
+        type: string
+      context:
+        required: true
+        type: string
+      repository:
+        required: false
+        type: string
+        default: ${{ github.repository }}
+      build_args:
+        required: false
+        type: string
+        default: ""
+      dockerfile:
+        required: false
+        type: string
+    secrets:
+      ECR_REPO:
+        required: true
+      BUILD_SECRETS:
+        required: false
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_PASSWORD:
+        required: true
+
+jobs:
+  build:
+    runs-on: [self-hosted, linux, x64]
+    env:
+      IMAGE_TAG: ${{ github.sha }}
+      GH_REGISTRY: ghcr.io/prepared911/${{ inputs.image_name }}
+      DEFAULT_DOCKERFILE: ${{ inputs.context }}/Dockerfile
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.repository }}
+
+      - uses: unfor19/install-aws-cli-action@v1.0.6
+
+      - name: Detect if image exists
+        id: built
+        continue-on-error: true
+        run: |
+          IMAGE_META="$( aws ecr describe-images --registry-id 259194869770 --repository-name ${{ inputs.image_name }} --image-ids=imageTag=${{ env.IMAGE_TAG }} 2> /dev/null )";
+          [[ $? = 0 ]] && BUILT="true" || BUILT="false";
+          echo "BUILT=$BUILT" >> $GITHUB_ENV;
+
+      - name: DockerHub login
+        if: env.BUILT != 'true'
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Docker login to ECR
+        if: env.BUILT != 'true'
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ secrets.ECR_REPO }}
+
+      - name: Docker login to GCR
+        if: env.BUILT != 'true'
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.GH_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Context for Buildx
+        if: env.BUILT != 'true'
+        run: docker context create builders
+
+      - name: Set up Docker Buildx
+        if: env.BUILT != 'true'
+        uses: docker/setup-buildx-action@v2
+        with:
+          version: latest
+          endpoint: builders
+          install: true
+
+      - name: Build, tag, push image to ECR
+        if: env.BUILT != 'true'
+        uses: docker/build-push-action@v4.0.0
+        with:
+          context: ${{ inputs.context }}
+          platforms: "linux/amd64"
+          push: true
+          tags: ${{ secrets.ECR_REPO }}:${{ env.IMAGE_TAG }}${{ github.event.pull_request.head.sha && format(',{0}:{1}', secrets.ECR_REPO, github.event.pull_request.head.sha) }}
+          cache-from: type=registry,ref=${{ env.GH_REGISTRY }}:cache
+          cache-to: type=registry,ref=${{ env.GH_REGISTRY }}:cache,mode=max
+          secrets: ${{ secrets.BUILD_SECRETS }}
+          build-args: ${{ inputs.build_args }}
+          file: ${{ inputs.dockerfile || env.DEFAULT_DOCKERFILE }}
+
+      - name: Retag ECR image with a deployment key
+        if: github.ref_type == 'tag'
+        run: |
+          MANIFEST="$( aws ecr batch-get-image --registry-id 259194869770 --repository-name ${{ inputs.image_name }} --image-ids=imageTag=${{ env.IMAGE_TAG }} --output text --query 'images[].imageManifest')";
+          tag=$(echo ${{ github.ref_name }} | tr  '\/' '_' | sed 's/@/deploy-/')
+          aws ecr put-image --registry-id 259194869770 --repository-name ${{ inputs.image_name }} --image-tag $tag --image-manifest "$MANIFEST"
