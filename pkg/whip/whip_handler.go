@@ -712,12 +712,17 @@ func (h *whipHandler) DeleteWHIPResource(ctx context.Context, req *rpc.DeleteWHI
 	return &google_protobuf2.Empty{}, nil
 }
 
+// TODO: Remove this function once transcoding issue is resolved.
 func filterVP8IfPossible(sdp string) string {
 	// If the SDP does not contain H264, return the original SDP
 	if !strings.Contains(sdp, "H264") {
 		return sdp
 	}
 
+	// SDP attributes has the form of a=field:[number]...INFO...
+	// The idea is to extract the number from an a=rtpmap:NUM VP8/90000 line
+	// and then remove all lines that contain that number
+	// Another TODO here is to remove VP9 from the answer, but this is just for testing.
 	getVP8Number := regexp.MustCompile(`(?:[a=rtpmap:])([0-9]+)(?:[\s+VP8])`)
 	num := strings.TrimSpace(getVP8Number.FindString(sdp))
 	if num == "" {
