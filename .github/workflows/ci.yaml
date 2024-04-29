@@ -25,7 +25,6 @@ jobs:
       DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
     with:
       image_name: livekit-ingress
-      repository: prepared911/ingress
       context: .
       dockerfile: ./build/ingress/Dockerfile
       build_args: |
