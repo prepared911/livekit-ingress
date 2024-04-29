@@ -388,6 +388,7 @@ func (h *whipHandler) getSDPAnswer(ctx context.Context, offer *webrtc.SessionDes
 
 	sdpAnswer := h.pc.LocalDescription().SDP
 	h.logger.Infow("created SDP answer from Local Description", "answer", sdpAnswer)
+	sdpAnswer = addICEToAnswer(sdpAnswer)
 
 	return sdpAnswer, nil
 }
