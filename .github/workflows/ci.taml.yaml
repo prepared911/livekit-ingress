@@ -11,9 +11,10 @@ permissions:
   pull-requests: read
 
 on:
-  release:
-    types:
-      - created
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   livekit-ingress-build:
@@ -32,6 +33,7 @@ jobs:
         GSTVERSION=1.22.5
 
   deploy-dev:
+    if: github.ref == 'refs/heads/main'
     needs: [livekit-ingress-build]
     uses: ./.github/workflows/update-deployment.yaml
     secrets: inherit
