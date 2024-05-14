@@ -222,3 +222,11 @@ docker run --rm \
 </tbody>
 </table>
 <!--END_REPO_NAV-->
+
+## Our Instructions
+
+In order to pull updates from the livekit remote use 
+
+`git remote add livekit git@github.com:livekit/ingress.git`
+
+and do `git pull livekit main`

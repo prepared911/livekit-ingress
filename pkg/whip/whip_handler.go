@@ -108,6 +108,8 @@ func (h *whipHandler) Init(ctx context.Context, p *params.Params, sdpOffer strin
 		SDP:  sdpOffer,
 	}
 
+	h.logger.Infow("received SDP offer", "offer", sdpOffer, "transcoding", *p.EnableTranscoding, "simulcast", len(h.simulcastLayers) != 0, "params", p)
+
 	h.expectedTrackCount, err = h.validateOfferAndGetExpectedTrackCount(offer)
 	if err != nil {
 		return "", err
@@ -149,10 +151,14 @@ func (h *whipHandler) Init(ctx context.Context, p *params.Params, sdpOffer strin
 		}
 	}()
 
+	h.logger.Infow("created peer connection with offer", "offer", sdpOffer)
 	sdpAnswer, err := h.getSDPAnswer(ctx, offer)
 	if err != nil {
 		return "", err
 	}
+	h.logger.Infow("created SDP answer", "sdpAnswer", sdpAnswer)
+
+	sdpAnswer = addICEToAnswer(sdpAnswer)
 
 	return sdpAnswer, nil
 }
@@ -347,6 +353,7 @@ func (h *whipHandler) getSDPAnswer(ctx context.Context, offer *webrtc.SessionDes
 		return "", err
 	}
 
+	h.logger.Infow("created answer", "answer", answer.SDP)
 	// Create channel that is blocked until ICE Gathering is complete
 	gatherComplete := webrtc.GatheringCompletePromise(h.pc)
 
@@ -375,6 +382,8 @@ func (h *whipHandler) getSDPAnswer(ctx context.Context, offer *webrtc.SessionDes
 	}
 
 	sdpAnswer := h.pc.LocalDescription().SDP
+	h.logger.Infow("created SDP answer from Local Description", "answer", sdpAnswer)
+	sdpAnswer = addICEToAnswer(sdpAnswer)
 
 	return sdpAnswer, nil
 }
@@ -412,6 +421,7 @@ func (h *whipHandler) addTrack(track *webrtc.TrackRemote, receiver *webrtc.RTPRe
 	var th WhipTrackHandler
 	var err error
 	if !*h.params.EnableTranscoding {
+		h.logger.Infow("creating SDK whip track handler without transcoding", "trackID", track.ID(), "kind", kind, "quality", trackQuality)
 		th, err = NewSDKWhipTrackHandler(logger, track, trackQuality, receiver, h.writePLI, h.writeRTCPUpstream)
 		if err != nil {
 			logger.Warnw("failed creating SDK whip track handler", err)
@@ -749,4 +759,18 @@ func (h *whipHandler) ICERestartWHIPResource(ctx context.Context, req *rpc.ICERe
 	}
 
 	return &rpc.ICERestartWHIPResourceResponse{TrickleIceSdpfrag: trickleIceSdpfrag.String()}, nil
+}
+
+func addICEToAnswer(sdp string) string {
+	iceString := "a=ice-options:trickle\r\n"
+	if strings.Contains(sdp, iceString) {
+		return sdp
+	}
+
+	if !strings.HasSuffix(sdp, "\r\n") {
+		sdp += "\r\n"
+	}
+
+	return sdp + iceString
+>>>>>>> 9240d4df2d82f53c860c943e293880929b255733
 }
