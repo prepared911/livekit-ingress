@@ -772,5 +772,4 @@ func addICEToAnswer(sdp string) string {
 	}
 
 	return sdp + iceString
->>>>>>> 9240d4df2d82f53c860c943e293880929b255733
 }
