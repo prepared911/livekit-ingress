@@ -318,7 +318,7 @@ func (h *whipHandler) createPeerConnection(api *webrtc.API) (*webrtc.PeerConnect
 	pc.OnConnectionStateChange(func(state webrtc.PeerConnectionState) {
 		h.logger.Infow("Peer Connection State changed", "state", state.String())
 
-		if state >= webrtc.PeerConnectionStateDisconnected {
+		if state >= webrtc.PeerConnectionStateFailed {
 			h.closeOnce.Do(func() {
 				h.sync.End()
 
