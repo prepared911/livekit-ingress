@@ -222,3 +222,25 @@ docker run --rm \
 </tbody>
 </table>
 <!--END_REPO_NAV-->
+
+## Our Instructions
+
+In order to pull updates from the livekit remote use 
+
+`git remote add livekit git@github.com:livekit/ingress.git`
+
+and do `git pull livekit main`
+
+To build
+
+```
+docker buildx build --platform linux/amd64  --file="./build/ingress/Dockerfile" -t ingress:latest --build-arg="GOVERSION=1.21.5" --build-arg="GSTVERSION=1.22.5"  --build-arg="TARGETPLATFORM=linux/amd64"    .
+```
+
+To Push 
+Get Admin Creds then
+```
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 259194869770.dkr.ecr.us-east-1.amazonaws.com
+docker tag ingress:latest 259194869770.dkr.ecr.us-east-1.amazonaws.com/livekit-ingress:test-tag
+docker push 259194869770.dkr.ecr.us-east-1.amazonaws.com/livekit-ingress:test-tag 
+```
