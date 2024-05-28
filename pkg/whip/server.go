@@ -162,8 +162,8 @@ func (s *WHIPServer) Start(
 
 		if r.Header.Get("If-Match") != "*" {
 			logger.Infow("WHIP client attempted Trickle-ICE", "streamKey", streamKey, "resourceID", resourceID)
-			w.WriteHeader(http.StatusUnprocessableEntity)
-			_, _ = w.Write([]byte("WHIP Trickle-ICE not supported"))
+			w.WriteHeader(http.StatusNoContent)
+			// _, _ = w.Write([]byte("WHIP Trickle-ICE not supported"))
 			return
 		}
 
