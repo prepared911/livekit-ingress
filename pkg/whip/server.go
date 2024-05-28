@@ -161,32 +161,30 @@ func (s *WHIPServer) Start(
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
 		if r.Header.Get("If-Match") != "*" {
-			logger.Warnw("WHIP ICE Restart must have If-Match='*'", err, "streamKey", streamKey, "resourceID", resourceID)
+			logger.Infow("WHIP client attempted Trickle-ICE", "streamKey", streamKey, "resourceID", resourceID)
 			w.WriteHeader(http.StatusUnprocessableEntity)
-			_, _ = w.Write([]byte("ICE Restart Request must have If-Match='*' Header"))
+			_, _ = w.Write([]byte("WHIP Trickle-ICE not supported"))
 			return
 		}
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			logger.Warnw("WHIP ICE Restart failed to read body", err, "streamKey", streamKey, "resourceID", resourceID)
+			logger.Infow("WHIP ICE Restart failed to read body", "error", err, "streamKey", streamKey, "resourceID", resourceID)
 			s.handleError(errors.ErrInvalidWHIPRestartRequest, w)
 			return
 		}
-
 		// Only extract the ufrag/pwd and candidates from the request
-		// "WHIP does not support renegotiation of non-ICE related SDP information"
 		//
 		// https://www.ietf.org/archive/id/draft-ietf-wish-whip-14.html#name-ice-restarts
 		userFragment, password, err := extractICEDetails(body)
 		if err != nil {
-			logger.Warnw("WHIP ICE Restart failed to unmarshal SDP", err, "streamKey", streamKey, "resourceID", resourceID)
+			logger.Infow("WHIP ICE Restart failed to unmarshal SDP", "error", err, "streamKey", streamKey, "resourceID", resourceID)
 			s.handleError(errors.ErrInvalidWHIPRestartRequest, w)
 			return
 		}
 
 		if userFragment == "" || password == "" {
-			logger.Warnw("WHIP ICE Restart failed to extract ice-ufrag/ice-pwd", err, "streamKey", streamKey, "resourceID", resourceID)
+			logger.Infow("WHIP ICE Restart failed to extract ice-ufrag/ice-pwd", "error", err, "streamKey", streamKey, "resourceID", resourceID)
 			s.handleError(errors.ErrInvalidWHIPRestartRequest, w)
 			return
 		}
@@ -199,7 +197,7 @@ func (s *WHIPServer) Start(
 		}, psrpc.WithRequestTimeout(5*time.Second))
 		if err == psrpc.ErrNoResponse {
 			s.handleError(errors.ErrIngressNotFound, w)
-			logger.Warnw("WHIP ICE Restart failed no such session", err, "streamKey", streamKey, "resourceID", resourceID)
+			logger.Infow("WHIP ICE Restart failed no such session", "error", err, "streamKey", streamKey, "resourceID", resourceID)
 			return
 		}
 

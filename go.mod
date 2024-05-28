@@ -14,7 +14,7 @@ require (
 	github.com/livekit/go-rtmp v0.0.0-20230829211117-1c4f5a5c81ed
 	github.com/livekit/mageutil v0.0.0-20230125210925-54e8a70427c1
 	github.com/livekit/mediatransportutil v0.0.0-20240501132628-6105557bbb9a
-	github.com/livekit/protocol v1.16.1-0.20240514184417-5aa3d9771312
+	github.com/livekit/protocol v1.16.1-0.20240517185851-47e4c6bba773
 	github.com/livekit/psrpc v0.5.3-0.20240426045048-8ba067a45715
 	github.com/livekit/server-sdk-go/v2 v2.1.2
 	github.com/pion/dtls/v2 v2.2.11
@@ -23,14 +23,14 @@ require (
 	github.com/pion/rtp v1.8.6
 	github.com/pion/sdp/v3 v3.0.9
 	github.com/pion/webrtc/v3 v3.2.40
-	github.com/prometheus/client_golang v1.19.0
+	github.com/prometheus/client_golang v1.19.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
 	github.com/urfave/cli/v2 v2.27.2
 	github.com/yutopp/go-flv v0.3.1
 	go.uber.org/atomic v1.11.0
 	golang.org/x/image v0.16.0
-	google.golang.org/grpc v1.63.2
+	google.golang.org/grpc v1.64.0
 	google.golang.org/protobuf v1.34.1
 	gopkg.in/yaml.v3 v3.0.1
 )
