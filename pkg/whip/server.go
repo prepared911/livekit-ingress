@@ -322,7 +322,7 @@ func (s *WHIPServer) handleNewWhipClient(w http.ResponseWriter, r *http.Request,
 		return err
 	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Expose-Headers", "Location")
+	w.Header().Set("Access-Control-Expose-Headers", "Location, ETag")
 	w.Header().Set("Content-Type", "application/sdp")
 	w.Header().Set("Location", fmt.Sprintf("/%s/%s/%s", app, streamKey, resourceId))
 	w.Header().Set("ETag", fmt.Sprintf("%08x", crc32.ChecksumIEEE(sdpOffer.Bytes())))
@@ -413,6 +413,6 @@ func setCORSHeaders(w http.ResponseWriter, r *http.Request, resourceEndpoint boo
 	} else {
 		w.Header().Set("Accept-Post", "application/sdp")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-		w.Header().Set("Access-Control-Expose-Headers", "Location")
+		w.Header().Set("Access-Control-Expose-Headers", "Location, ETag")
 	}
 }
