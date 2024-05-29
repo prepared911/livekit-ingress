@@ -201,6 +201,12 @@ func (s *WHIPServer) Start(
 			return
 		}
 
+		if err != nil {
+			logger.Infow("WHIP ICE Restart failed", "error", err, "streamKey", streamKey, "resourceID", resourceID)
+			s.handleError(err, w)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/trickle-ice-sdpfrag")
 		w.Header().Set("ETag", fmt.Sprintf("%08x", crc32.ChecksumIEEE([]byte(resp.TrickleIceSdpfrag))))
 		w.WriteHeader(http.StatusOK)
