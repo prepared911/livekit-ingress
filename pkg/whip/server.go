@@ -178,7 +178,7 @@ func (s *WHIPServer) Start(
 		// https://www.ietf.org/archive/id/draft-ietf-wish-whip-14.html#name-ice-restarts
 		userFragment, password, err := extractICEDetails(body)
 		if err != nil {
-			logger.Infow("WHIP ICE Restart failed to unmarshal SDP", "error", err, "streamKey", streamKey, "resourceID", resourceID)
+			logger.Infow("WHIP ICE Restart failed to unmarshal SDP", "error", err, "streamKey", streamKey, "resourceID", resourceID, "body", string(body))
 			s.handleError(errors.ErrInvalidWHIPRestartRequest, w)
 			return
 		}
