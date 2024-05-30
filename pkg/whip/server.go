@@ -190,6 +190,8 @@ func (s *WHIPServer) Start(
 			return
 		}
 
+		logger.Infow("Extracted Fragment and Password", "streamKey", streamKey, "resourceID", resourceID, "ufrag", userFragment, "password", password)
+
 		resp, err := s.rpcClient.ICERestartWHIPResource(s.ctx, resourceID, &rpc.ICERestartWHIPResourceRequest{
 			UserFragment: userFragment,
 			Password:     password,
