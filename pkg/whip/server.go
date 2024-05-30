@@ -176,9 +176,10 @@ func (s *WHIPServer) Start(
 		// Only extract the ufrag/pwd and candidates from the request
 		//
 		// https://www.ietf.org/archive/id/draft-ietf-wish-whip-14.html#name-ice-restarts
+		logger.Infow("WHIP ICE Restart request", "body", string(body))
 		userFragment, password, err := extractICEDetails(body)
 		if err != nil {
-			logger.Infow("WHIP ICE Restart failed to unmarshal SDP", "error", err, "streamKey", streamKey, "resourceID", resourceID, "body", string(body))
+			logger.Infow("WHIP ICE Restart failed to unmarshal SDP", "error", err, "streamKey", streamKey, "resourceID", resourceID)
 			s.handleError(errors.ErrInvalidWHIPRestartRequest, w)
 			return
 		}
