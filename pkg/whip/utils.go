@@ -1,6 +1,7 @@
 package whip
 
 import (
+	"regexp"
 	"strings"
 	"time"
 
@@ -87,6 +88,18 @@ func extractICEDetails(in []byte) (ufrag string, pwd string, err error) {
 		scanAttributes(m.Attributes)
 	}
 
+	return
+}
+
+func ScherbanExtractDetails(frag string) (ufrag string, pwd string, err error) {
+	ufragPattern := regexp.MustCompile(`(a=ice-ufrag:.*)`)
+	passPattern := regexp.MustCompile(`(a=ice-pwd.*)`)
+	ufrag = strings.ReplaceAll(ufragPattern.FindString(frag), "a=ice-ufrag:", "")
+	pwd = strings.ReplaceAll(passPattern.FindString(frag), "a=ice-pwd:", "")
+
+	if ufrag == "" || pwd == "" {
+		err = errors.New("could not extract ICE details")
+	}
 	return
 }
 
