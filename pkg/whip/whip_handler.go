@@ -328,11 +328,7 @@ func (h *whipHandler) createPeerConnection(api *webrtc.API) (*webrtc.PeerConnect
 			h.closeOnce.Do(func() {
 				h.sync.End()
 
-				h.trackLock.Lock()
-				for _, v := range h.trackHandlers {
-					v.Close()
-				}
-				h.trackLock.Unlock()
+				h.closeTrackHandlers()
 			})
 		}
 	})
@@ -495,7 +491,7 @@ func (h *whipHandler) runSession(ctx context.Context) error {
 	var sdkOutput *lksdk_output.LKSDKOutput
 
 	if !*h.params.EnableTranscoding {
-		sdkOutput, err = lksdk_output.NewLKSDKOutput(ctx, h.params)
+		sdkOutput, err = lksdk_output.NewLKSDKOutput(ctx, nil, h.params)
 		if err != nil {
 			return err
 		}
@@ -524,14 +520,20 @@ func (h *whipHandler) runSession(ctx context.Context) error {
 
 	result := make(chan error, 1)
 
-	for _, th := range h.trackHandlers {
+	h.trackLock.Lock()
+	for td, th := range h.trackHandlers {
 		err := th.Start(func(err error) {
+			h.logger.Infow("track handler done", "error", err, "kind", td.Kind, "quality", td.Quality)
+			// cancel all remaining track handlers
+			h.closeTrackHandlers()
+
 			result <- err
 		})
 		if err != nil {
 			return err
 		}
 	}
+	h.trackLock.Unlock()
 
 	var trackDoneCount int
 	var errs putils.ErrArray
@@ -566,6 +568,15 @@ loop:
 	}
 
 	return err
+}
+
+func (h *whipHandler) closeTrackHandlers() {
+	h.trackLock.Lock()
+	defer h.trackLock.Unlock()
+
+	for _, th := range h.trackHandlers {
+		th.Close()
+	}
 }
 
 func (h *whipHandler) validateOfferAndGetExpectedTrackCount(offer *webrtc.SessionDescription) (int, error) {

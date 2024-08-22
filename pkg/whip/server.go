@@ -318,7 +318,7 @@ func (s *WHIPServer) handleNewWhipClient(w http.ResponseWriter, r *http.Request,
 		return err
 	}
 
-	logger.Debugw("new whip request", "streamKey", streamKey, "sdpOffer", sdpOffer.String())
+	logger.Debugw("new whip request", "streamKey", streamKey, "sdpOffer", sdpOffer.String(), "userAgent", r.Header.Get("User-Agent"))
 
 	resourceId, sdp, err := s.createStream(streamKey, sdpOffer.String())
 	if err != nil {
@@ -350,6 +350,7 @@ func (s *WHIPServer) createStream(streamKey string, sdpOffer string) (string, st
 
 	sdpResponse, err := h.Init(ctx, p, sdpOffer)
 	if err != nil {
+		ready(nil, err)
 		return "", "", err
 	}
 
