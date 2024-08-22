@@ -237,6 +237,12 @@ To build
 docker buildx build --platform linux/amd64  --file="./build/ingress/Dockerfile" -t ingress:latest --build-arg="GOVERSION=1.21.5" --build-arg="GSTVERSION=1.22.5"  --build-arg="TARGETPLATFORM=linux/amd64"    .
 ```
 
+To build for ARM 
+
+```
+docker buildx build --platform linux/arm64  --file="./build/ingress/Dockerfile" -t ingress:latest --build-arg="GOVERSION=1.21.5" --build-arg="GSTVERSION=1.22.5"  --build-arg="TARGETPLATFORM=linux/arm64"    .
+```
+
 To Push 
 Get Admin Creds then
 ```
